@@ -8,7 +8,7 @@ Board State represented as a string
 
 """
 
-import pprint, random
+import pprint, random, math
 
 class Bot():
 
@@ -91,66 +91,69 @@ class Board():
 
 def getMoves(state, turn):
     moves = []
+    n = int(math.sqrt(len(state)))
     for x, piece in enumerate(state):
 
         #Handle Player 2
         if piece == "2" and turn % 2 == 0:
-            targetRow = (x//3)+1
-            start = targetRow * 3
-            indices = [i for i in range(start, start+3)]
+            targetRow = (x//n)+1
+            start = targetRow * n
+            indices = [i for i in range(start, start+n)]
             # Check the first column
-            if x%3 == 0:
+            if x%n == 0:
                 if state[indices[0]] == "0":
                     moves.append((x,indices[0]))
                 if state[indices[1]] == "1":
                     moves.append((x,indices[1]))
-            # Check the second column
-            elif x%3 == 1:
-                if state[indices[0]] == "1":
-                    moves.append((x,indices[0]))
-                if state[indices[1]] == "0":
-                    moves.append((x,indices[1]))
-                if state[indices[2]] == "1":
-                    moves.append((x,indices[2]))
-            # Check the third column
-            elif x%3 == 2:
-                if state[indices[1]] == "1":
-                    moves.append((x,indices[1]))
-                if state[indices[2]] == "0":
-                    moves.append((x,indices[2]))
+            # Check the last column
+            elif x%n == n-1:
+                if state[indices[n-2]] == "1":
+                    moves.append((x,indices[n-2]))
+                if state[indices[n-1]] == "0":
+                    moves.append((x,indices[n-1]))
+            # Check other columns
+            else:
+                if state[indices[x%n-1]] == "1":
+                    moves.append((x,indices[x%n-1]))
+                if state[indices[x%n]] == "0":
+                    moves.append((x,indices[x%n]))
+                if state[indices[x%n+1]] == "1":
+                    moves.append((x,indices[x%n+1]))
+            
 
         # Handle Player 1            
         if piece == "1" and turn % 2 == 1:
-            targetRow = (x//3)-1
-            start = targetRow * 3
-            indices = [i for i in range(start, start+3)]
+            targetRow = (x//n)-1
+            start = targetRow * n
+            indices = [i for i in range(start, start+n)]
             # Check the first column
-            if x%3 == 0:
+            if x%n == 0:
                 if state[indices[0]] == "0":
                     moves.append((x,indices[0]))
                 if state[indices[1]] == "2":
                     moves.append((x,indices[1]))
-            # Check the second column
-            elif x%3 == 1:
-                if state[indices[0]] == "2":
-                    moves.append((x,indices[0]))
-                if state[indices[1]] == "0":
-                    moves.append((x,indices[1]))
-                if state[indices[2]] == "2":
-                    moves.append((x,indices[2]))
-            # Check the third column
-            elif x%3 == 2:
-                if state[indices[1]] == "2":
-                    moves.append((x,indices[1]))
-                if state[indices[2]] == "0":
-                    moves.append((x,indices[2]))
+            # Check the last column
+            elif x%n == n-1:
+                if state[indices[n-2]] == "2":
+                    moves.append((x,indices[n-2]))
+                if state[indices[n-1]] == "0":
+                    moves.append((x,indices[n-1]))
+            # Check other columns
+            else:
+                if state[indices[x%n-1]] == "2":
+                    moves.append((x,indices[x%n-1]))
+                if state[indices[x%n]] == "0":
+                    moves.append((x,indices[x%n]))
+                if state[indices[x%n+1]] == "2":
+                    moves.append((x,indices[x%n+1]))
+
     return moves
 
 def simulate(silent=False):
 
     print("Training Model...")
 
-    games = 10000
+    games = 1
     
     HIM = Bot()
     HER = Bot()
@@ -159,7 +162,7 @@ def simulate(silent=False):
 
     for x in range(games):
         
-        board = Board()
+        board = Board(4)
         turn = 1
 
         if not silent:
@@ -175,6 +178,7 @@ def simulate(silent=False):
                 move = HER.pickMove(turn, board.getBoardState())
             if move == None:
                 break
+            print(move)
             board.executeMove(move)
             if not silent:
                 board.printBoard()
@@ -239,6 +243,6 @@ def interactiveGame(bot):
         if again.lower() == "n": break
     
 if __name__=="__main__":
-    simulate(True)
+    simulate()
 
     

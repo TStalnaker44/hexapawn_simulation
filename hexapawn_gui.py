@@ -4,8 +4,8 @@ File: queens_gui.py
 """
 
 import pygame, time, random
-from hexapawn import Bot, Board
-TILE_WIDTH = 50
+from hexapawn_game import Game
+TILE_WIDTH = 75
 WHITEPAWN = pygame.image.load("pawn_white.png")
 BLACKPAWN = pygame.image.load("pawn_black.png")
 
@@ -18,6 +18,12 @@ class HexapawnGUI():
         self._n = n
         dim = TILE_WIDTH * n #pixelsPerSquare * (numSquares + padding)
         self._screen = pygame.display.set_mode((dim+20,dim+90))
+
+        self._gameClock = pygame.time.Clock()
+        self._moveTime = .25
+        self._moveTimer = self._moveTime
+
+        self._font = pygame.font.SysFont("Times New Roman", 16)
 
         # Make the pawn image transparent
         global WHITEPAWN
@@ -32,7 +38,7 @@ class HexapawnGUI():
 ##        self.makeInstructions()
         
         self._RUNNING = True
-        self._board = Board(self._n)
+        self._g = Game(self._n)
         self.makeBoard()
 ##        self._solved = False
 ##        self._animating = False
@@ -72,6 +78,7 @@ class HexapawnGUI():
 
     def makeBoard(self):
         tiles = []
+        board = self._g._board
         for i in range(self._n):
             for j in range(self._n):
                 x = (TILE_WIDTH * (j)) + 10
@@ -81,7 +88,7 @@ class HexapawnGUI():
                 else:
                     color = (0,0,0)
                 index = (self._n * i) + j
-                pawn = self._board.getBoardState()[index]
+                pawn = board.getBoardState()[index]
                 tiles.append(BoardTile((x,y),color, pawn))
         self._tiles = tiles
         
@@ -89,13 +96,30 @@ class HexapawnGUI():
         self._screen.fill((230,230,230))
         for t in self._tiles:
             t.draw(self._screen)
+        self.drawScoreBoard()
         
 ##        self._newButton.draw(self._screen)
 ##        self._quickSolveButton.draw(self._screen)
 ##        self._stepSolveButton.draw(self._screen)
 ##        if self._waitForPlayer:
-##            self._screen.blit(self._instructions, (142,420))
+###            self._screen.blit(self._instructions, (142,420))
         pygame.display.flip()
+
+    def drawScoreBoard(self):
+        # Draw total games played
+        played = self._font.render(("Games Played: %d" % (self._g._gameCount)),
+                                   True, (0,0,0))
+        x_coord = self._screen.get_width()//2 - played.get_width()//2
+        y_coord = TILE_WIDTH * (self._n+.25)
+        self._screen.blit(played,(x_coord,y_coord))
+
+        # Draw player win totals
+        for x in range(1,3):
+            wins = self._font.render(("Player %d Wins: %d" % (x, self._g._wins[x])),
+                                   True, (0,0,0))
+            x_coord = self._screen.get_width()//2 - wins.get_width()//2
+            y_coord =y_coord + 25
+            self._screen.blit(wins,(x_coord,y_coord))
 
     def handleEvents(self): 
         for event in pygame.event.get():
@@ -149,12 +173,29 @@ class HexapawnGUI():
                     
     def runGameLoop(self):
         while self.isRunning():
+            self._gameClock.tick()
             self.draw()
             self.handleEvents()
+            self.update()
         pygame.quit()
 
     def isRunning(self):
         return self._RUNNING
+
+    def update(self):
+        ticks = self._gameClock.get_time() / 1000
+        if not self._g.isGameOver():
+            if self._moveTimer < 0:
+                self._g.executeTurn()
+                self.makeBoard()
+                self._moveTimer = self._moveTime
+            else:
+                self._moveTimer -= ticks
+        else:
+            self._g.gameWrapUp()
+            self._g.reset()
+            self.makeBoard()
+            self._moveTimer = self._moveTime
 
 class BoardTile():
 
