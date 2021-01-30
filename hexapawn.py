@@ -33,7 +33,6 @@ class Bot():
         return move
 
     def learn(self, won, punish=True, reward=True):
-        ## TO-DO: Allow a toggle for this
         if self._lastMove != None:
             turn, state, move = self._lastMove
             if won:
@@ -85,12 +84,6 @@ def getStateVisualization(state):
     state = state.replace("0", " ")
     #return f"{state[:3]}\n{state[3:6]}\n{state[6:]}"
     return ("%s\n%s\n%s" % (state[:3], state[3:6], state[6:]))
-
-def mirrorState(state):
-    firstrow = state[0:3][::-1]
-    secondrow = state[3:6][::-1]
-    thirdrow = state[6:9][::-1]
-    return firstrow + secondrow + thirdrow
 
 def getMoves(state, turn):
     moves = []
@@ -148,20 +141,6 @@ def getMoves(state, turn):
                 if state[indices[2]] == "0":
                     moves.append((x,indices[2]))
     return moves
-
-def createStateMapping():
-    states2moves = dict()
-    # Create a mapping from states to moves
-    for turn, stateLyst in states.items():
-        for state in stateLyst:
-            if turn in states2moves.keys():
-                states2moves[turn][state] = getMoves(state, turn)
-            else:
-                states2moves[turn] = {state : getMoves(state, turn)}
-            mirroredState = mirrorState(state)
-            if not mirroredState in stateLyst:
-                states2moves[turn][mirroredState] = getMoves(mirroredState, turn)
-    return states2moves
 
 def simulate(silent=False):
 
