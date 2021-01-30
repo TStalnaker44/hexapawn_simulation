@@ -43,8 +43,10 @@ class Bot():
         
 class Board():
 
-    def __init__(self):
-        self._board = [c for c in "222000111"]
+    def __init__(self, n=3):
+        self._n = n
+        encoding = ("2"*n) + ("0"*n*(n-2)) + ("1"*n)
+        self._board = [c for c in encoding]
 
     def getBoardState(self):
         return "".join(self._board)
@@ -54,22 +56,31 @@ class Board():
         self._board[move[0]] = "0"
 
     def printBoard(self):
-        print(getStateVisualization(self.getBoardState()))
+        n = self._n
+        state = self.getBoardState()
+        state = state.replace("2", "X")
+        state = state.replace("1", "O")
+        state = state.replace("0", " ")
+        output = "\n".join(state[n*x:n*(x+1)]
+                           for x in range(n))
+        print(output)
 
     def isGameOver(self, turn):
+        n = self._n
         if not "2" in self._board or \
            not "1" in self._board or \
-           "2" in self._board[6:9] or \
-           "1" in self._board[0:3] or \
+           "2" in self._board[(n*n)-n:n*n] or \
+           "1" in self._board[0:n] or \
            getMoves(self.getBoardState(), turn) == []:
             return True
         else:
             return False
 
     def getWinner(self, turn):
-        if "1" in self._board[0:3]:
+        n = self._n
+        if "1" in self._board[0:self._n]:
             return 1
-        if "2" in self._board[6:9]:
+        if "2" in self._board[(n*n)-n:n*n]:
             return 2
         if not "2" in self._board:
             return 1
@@ -77,13 +88,6 @@ class Board():
             return 2
         if getMoves(self.getBoardState(), turn) == []:
             return ((turn) % 2)+1
-
-def getStateVisualization(state):
-    state = state.replace("2", "X")
-    state = state.replace("1", "O")
-    state = state.replace("0", " ")
-    #return f"{state[:3]}\n{state[3:6]}\n{state[6:]}"
-    return ("%s\n%s\n%s" % (state[:3], state[3:6], state[6:]))
 
 def getMoves(state, turn):
     moves = []
