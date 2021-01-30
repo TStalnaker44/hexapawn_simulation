@@ -10,10 +10,10 @@ WHITEPAWN = pygame.image.load("pawn_white.png")
 BLACKPAWN = pygame.image.load("pawn_black.png")
 
 def main():
-    n = 5
+    n = 3
     bot1Learns = True
     bot2Learns = True
-    trainingEpochs = 50000
+    trainingEpochs = 0
     g = HexapawnGUI(n, (bot1Learns, bot2Learns), trainingEpochs)
     g.runGameLoop()
     
@@ -28,7 +28,7 @@ class HexapawnGUI():
         self._screen = pygame.display.set_mode((dim+20,dim+90))
 
         self._gameClock = pygame.time.Clock()
-        self._moveTime = .05
+        self._moveTime = .5
         self._moveTimer = self._moveTime
 
         self._font = pygame.font.SysFont("Times New Roman", 16)
@@ -137,18 +137,19 @@ class HexapawnGUI():
 
     def update(self):
         ticks = self._gameClock.get_time() / 1000
-        if not self._g.isGameOver():
-            if self._moveTimer < 0:
+        if self._moveTimer < 0:
+            if not self._g.isGameOver():
+            
                 self._g.executeTurn()
                 self.makeBoard()
-                self._moveTimer = self._moveTime
+                self._moveTimer = self._moveTime  
             else:
-                self._moveTimer -= ticks
+                self._g.gameWrapUp()
+                self._g.reset()
+                self.makeBoard()
+                self._moveTimer = self._moveTime
         else:
-            self._g.gameWrapUp()
-            self._g.reset()
-            self.makeBoard()
-            self._moveTimer = self._moveTime
+            self._moveTimer -= ticks
 
 class BoardTile():
 
