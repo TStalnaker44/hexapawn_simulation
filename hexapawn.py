@@ -10,56 +10,19 @@ Board State represented as a string
 
 import pprint, random
 
-states = {1:["222000111"],
-          2:["222001110",
-             "222010101"],
-          3:["202200011",
-             "202120011",
-             "220102011",
-             "022210101",
-             "022020101"],
-          4:["022211100",
-             "202201010",
-             "202210001",
-             "220101001",
-             "202100001",
-             "022021100",
-             "022120001",
-             "220112001",
-             "202110010",
-             "022010100",
-             "022010001"],
-          5:["002220001",
-             "200220001",
-             "200212001",
-             "002120010",
-             "020012100",
-             "200112010",
-             "020122001",
-             "200212001",
-             "200201001",
-             "200121001",
-             "020020001"],
-          6:["200111000",
-             "002221000",
-             "200221000",
-             "020021000",
-             "002210000",
-             "020112000",
-             "200210000"],
-          7:["000212000",
-             "000121000",
-             "000211000",
-             "000021000"]}
-
 class Bot():
 
     def __init__(self):
-        self._brain = createStateMapping()
+        self._brain = {}#createStateMapping()
         self._lastMove = None
         self._forfeit = False
 
     def pickMove(self, turn, state):
+        # Allow the bot to learn the moves naturally
+        if not turn in self._brain:
+            self._brain[turn] = {}
+        if not state in self._brain[turn]:
+            self._brain[turn][state] = getMoves(state, turn)
         possibleMoves = self._brain[turn][state]
         if possibleMoves == []:
             self._forfeit = True
