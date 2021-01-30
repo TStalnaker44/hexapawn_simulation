@@ -37,10 +37,12 @@ class Bot():
             self._brain[turn] = {}
         if not state in self._brain[turn]:
             self._brain[turn][state] = getMoves(state, turn)
+
+        # Get the possible moves
         possibleMoves = self._brain[turn][state]
         if possibleMoves == []:
             self._forfeit = True
-            self._lastMove = None
+            #self._lastMove = None
             return None #The bot forfeits in losing state
         move = random.choice(possibleMoves)
         self._lastMove = (turn, state, move)
@@ -64,7 +66,8 @@ class Bot():
                         self._moveMemory = []
             else:
                 if self._punish:
-                    self._brain[turn][state].remove(move)
+                    if move in self._brain[turn][state]:
+                        self._brain[turn][state].remove(move)
         
 class Board():
 

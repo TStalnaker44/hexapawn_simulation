@@ -10,10 +10,10 @@ WHITEPAWN = pygame.image.load("pawn_white.png")
 BLACKPAWN = pygame.image.load("pawn_black.png")
 
 def main():
-    n = 3
+    n = 5
     bot1Learns = True
     bot2Learns = True
-    trainingEpochs = 0
+    trainingEpochs = 50000
     g = HexapawnGUI(n, (bot1Learns, bot2Learns), trainingEpochs)
     g.runGameLoop()
     
