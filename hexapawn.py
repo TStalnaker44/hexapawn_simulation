@@ -69,7 +69,7 @@ class Bot():
         self._lastMove = (turn, state, move)
         return move
 
-    def learn(self, won):
+    def learn(self, won, punish=True, reward=True):
         ## TO-DO: Allow a toggle for this
         if self._lastMove != None:
             turn, state, move = self._lastMove
@@ -202,7 +202,9 @@ def createStateMapping():
 
 def simulate(silent=False):
 
-    games = 100
+    print("Training Model...")
+
+    games = 10000
     
     HIM = Bot()
     HER = Bot()
@@ -237,8 +239,8 @@ def simulate(silent=False):
             winner = 2
         if HER._forfeit:
             winner = 1
-        HIM.learn(winner==1)
-        HER.learn(winner==2)
+        #HIM.learn(winner==1)
+        HER.learn(winner==2, True, True)
         if not silent:
             print("Player %d won the game" % (winner))
 
@@ -250,8 +252,46 @@ def simulate(silent=False):
     print("HIM wins:", wins[1])
     print("HER wins:", wins[2])
     print("Of", games, "games")
+    
+    print("\nModel Trained!\n")
 
-  
+    interactiveGame(HER)
+
+def interactiveGame(bot):
+
+    while True:
+    
+        board = Board()
+        turn = 1
+        
+        while not board.isGameOver(turn):
+            if turn % 2 == 1:
+                print("Your Turn")
+                board.printBoard()
+                move = input("What is your move? ")
+                move = (int(move[0]), int(move[1]))
+            else:
+                print("The bot's turn")
+                board.printBoard()
+                move = bot.pickMove(turn, board.getBoardState())
+            if move == None:
+                break
+            board.executeMove(move)
+            
+            turn += 1
+            
+        board.printBoard()
+        winner = board.getWinner(turn)
+        if bot._forfeit:
+            winner = 1
+        bot.learn(winner==2, True, True)
+        print("Player %d won the game" % (winner))
+
+        bot._forfeit = False
+
+        again = input("Play again? (y/n) ")
+        if again.lower() == "n": break
+    
 if __name__=="__main__":
     simulate(True)
 
