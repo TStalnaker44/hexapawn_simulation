@@ -9,9 +9,17 @@ TILE_WIDTH = 75
 WHITEPAWN = pygame.image.load("pawn_white.png")
 BLACKPAWN = pygame.image.load("pawn_black.png")
 
+def main():
+    n = 5
+    bot1Learns = True
+    bot2Learns = True
+    trainingEpochs = 50000
+    g = HexapawnGUI(n, (bot1Learns, bot2Learns), trainingEpochs)
+    g.runGameLoop()
+    
 class HexapawnGUI():
 
-    def __init__(self, n=3):
+    def __init__(self, n=3, learning=(True, True), epochs=0):
         pygame.init()
         pygame.font.init()
         pygame.display.set_caption('Checker Board GUI')
@@ -20,7 +28,7 @@ class HexapawnGUI():
         self._screen = pygame.display.set_mode((dim+20,dim+90))
 
         self._gameClock = pygame.time.Clock()
-        self._moveTime = .25
+        self._moveTime = .05
         self._moveTimer = self._moveTime
 
         self._font = pygame.font.SysFont("Times New Roman", 16)
@@ -33,48 +41,22 @@ class HexapawnGUI():
         global BLACKPAWN
         BLACKPAWN = BLACKPAWN.convert()
         BLACKPAWN.set_colorkey(BLACKPAWN.get_at((0,0)))
-
-##        self.makeButtons()
-##        self.makeInstructions()
         
         self._RUNNING = True
-        self._g = Game(self._n)
+        self._g = Game(self._n, learning)
+        self.setBotParams()
+        self._g.trainModels(epochs)
         self.makeBoard()
-##        self._solved = False
-##        self._animating = False
-##        self._waitForPlayer = False
 
-##    def makeButtons(self):
-##        y = (TILE_WIDTH * self._n) + 50
-##        self._newButton = Button((100, y), "New")
-##        x = self._newButton.getWidth() + self._newButton._pos[0] + 10
-##        self._quickSolveButton = Button((x, y), "Quick Solve")
-##        x = self._quickSolveButton.getWidth() + \
-##            self._quickSolveButton._pos[0] + 10
-##        self._stepSolveButton = Button((x, y), "Step Solve")
-
-##    def makeInstructions(self):
-##        font = pygame.font.SysFont("Times New Roman", 16)
-##        self._instructions = font.render("Place a Queen Above", True, (0,0,0))
-  
-##    def quickSolve(self):
-##        self._solved = True
-##        self._board.solve()
-##        self.makeBoard()
-        
-##    def animatedSolve(self):
-##        self._animating = True
-##        start_new_thread(self._solve, ())
-##
-##    def _solve(self):
-##        self._board.solve(self.animate)
-##        self.makeBoard()
-##        self._solved = True
-
-##    def animate(self):
-##        if self._animating:
-##            self.makeBoard()
-##            time.sleep(.5)
+    def setBotParams(self):
+        p1 = self._g._p1
+        p1.usePunish(True)
+        p1.useReward(False)
+        p1.useLongTermMemory(True)
+        p2 = self._g._p2
+        p2.usePunish(True)
+        p2.useReward(False)
+        p2.useLongTermMemory(True)
 
     def makeBoard(self):
         tiles = []
@@ -97,12 +79,6 @@ class HexapawnGUI():
         for t in self._tiles:
             t.draw(self._screen)
         self.drawScoreBoard()
-        
-##        self._newButton.draw(self._screen)
-##        self._quickSolveButton.draw(self._screen)
-##        self._stepSolveButton.draw(self._screen)
-##        if self._waitForPlayer:
-###            self._screen.blit(self._instructions, (142,420))
         pygame.display.flip()
 
     def drawScoreBoard(self):
@@ -126,29 +102,6 @@ class HexapawnGUI():
             
             if (event.type == pygame.QUIT):
                 self._RUNNING = False
-
-            ## Handle events on the solve buttons
-##            self._stepSolveButton.handleEvent(event, self.solveAnimated)
-##            self._quickSolveButton.handleEvent(event, self.solveQuick)
-
-            ## Keyboard Short-cut for a new board          
-##            if event.type == pygame.KEYDOWN and \
-##               event.key == pygame.K_n:
-##                self.newBoard()
-
-            ## Button press for a new board
-##            self._newButton.handleEvent(event, self.newBoard)
-
-            ## Allow the player to place a new queen on the board
-##            if self._waitForPlayer:
-##                if event.type == pygame.MOUSEBUTTONDOWN and \
-##                   event.button == 1 and event.pos[1] < 8*TILE_WIDTH + 10:
-##                    x, y = event.pos
-##                    column = (x - 10)  // TILE_WIDTH
-##                    row = (y - 10) // TILE_WIDTH
-##                    self._board.placeQueen(row, column)
-##                    self.makeBoard()
-##                    self._waitForPlayer = False
 
     def newBoard(self):
         self._board = Board(None)
@@ -242,5 +195,5 @@ class Button():
         return self._image.get_width()
 
 
-g = HexapawnGUI(3)
-g.runGameLoop()
+if __name__=="__main__":
+    main()

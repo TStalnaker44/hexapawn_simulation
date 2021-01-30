@@ -15,7 +15,21 @@ class Bot():
     def __init__(self):
         self._brain = {}#createStateMapping()
         self._lastMove = None
+        self._moveMemory = []
         self._forfeit = False
+
+        self._reward = True
+        self._punish = True
+        self._longTermMemory = True
+
+    def usePunish(self, punish):
+        self._punish = punish
+
+    def useReward(self, reward):
+        self._reward = reward
+        
+    def useLongTermMemory(self, mem):
+        self._longTermMemory = mem
 
     def pickMove(self, turn, state):
         # Allow the bot to learn the moves naturally
@@ -30,16 +44,27 @@ class Bot():
             return None #The bot forfeits in losing state
         move = random.choice(possibleMoves)
         self._lastMove = (turn, state, move)
+        self._moveMemory.append(self._lastMove)
         return move
 
-    def learn(self, won, punish=True, reward=True):
+    def learn(self, won):
         if self._lastMove != None:
             turn, state, move = self._lastMove
             if won:
-                for x in range(3):
-                    self._brain[turn][state].append(move)  
+                if self._reward:
+                    if self._longTermMemory:
+                        for memory in self._moveMemory:
+                            turn, state, move = memory
+                            for x in range(3):
+                                self._brain[turn][state].append(move)
+                        self._moveMemory = []
+                    else:
+                        for x in range(3):
+                            self._brain[turn][state].append(move)
+                        self._moveMemory = []
             else:
-                self._brain[turn][state].remove(move)
+                if self._punish:
+                    self._brain[turn][state].remove(move)
         
 class Board():
 
@@ -190,7 +215,7 @@ def simulate(silent=False):
         if HER._forfeit:
             winner = 1
         #HIM.learn(winner==1)
-        HER.learn(winner==2, True, True)
+        HER.learn(winner==2)
         if not silent:
             print("Player %d won the game" % (winner))
 
@@ -234,7 +259,7 @@ def interactiveGame(bot):
         winner = board.getWinner(turn)
         if bot._forfeit:
             winner = 1
-        bot.learn(winner==2, True, True)
+        bot.learn(winner==2)
         print("Player %d won the game" % (winner))
 
         bot._forfeit = False

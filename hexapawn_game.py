@@ -3,7 +3,7 @@ from hexapawn import Board, Bot
 
 class Game():
 
-    def __init__(self, n=3):
+    def __init__(self, n=3, learn = (True, True)):
         self._n = n
         self._board = Board(n)
         self._p1 = Bot()
@@ -12,6 +12,7 @@ class Game():
         self._gameOver = False
         self._gameCount = 0
         self._wins = {1:0, 2:0}
+        self._learnSwitch = learn
 
     def reset(self):
         self._board = Board(self._n)
@@ -54,5 +55,15 @@ class Game():
         self._wins[winner] += 1
 
         # Train both models
-        self._p1.learn(winner==1)
-        self._p2.learn(winner==2)
+        if self._learnSwitch[0]:
+            self._p1.learn(winner==1)
+        if self._learnSwitch[1]:
+            self._p2.learn(winner==2)
+
+    def trainModels(self, epochs=100):
+        for x in range(epochs):
+            while not self.isGameOver():
+                self.executeTurn()
+            self.gameWrapUp()
+            self.reset()
+        
